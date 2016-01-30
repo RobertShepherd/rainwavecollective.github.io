@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<!-- saved from url=(0056)http://threejs.org/examples/webgl_points_billboards.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Rainwave - 3D Led Cube viewer</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+<style>
+	body {
+		background-color: #000000;
+		margin: 0px;
+		overflow: hidden;
+		font-family:Monospace;
+		font-size:13px;
+		text-align:center;
+		font-weight: bold;
+		text-align:center;
+	}
+
+	a {
+		color:#0078ff;
+	}
+
+	#info {
+		color:#fff;
+		position: absolute;
+		top: 0px; width: 100%;
+		padding: 5px;
+		z-index:100;
+	}
+
+</style>
+<style type="text/css"></style></head>
+<body>
+
+	<div id="info">
+		<a href="http://threejs.org/" target="_blank">three.js</a> - webgl particle billboards example
+	</div>
+
+	<script src="three.min.js"></script>
+
+	<script src="Detector.js"></script>
+	<script src="stats.min.js"></script>
+
+	<script>
+
+		if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
+
+		var container, stats;
+		var camera, scene, renderer, particles, geometry, material, i, h, color, sprite, size;
+		var mouseX = 0, mouseY = 0;
+
+		var windowHalfX = window.innerWidth / 2;
+		var windowHalfY = window.innerHeight / 2;
+
+		var nX = 24, nY = 21, nZ = 12;
+		var sX = 375, sY = 190, sZ = 375;
+		var lightBulbs = createArray(nX, nY, nZ);
+
+		init();
+		animate();
+
+		function init() {
+
+			container = document.createElement( 'div' );
+			document.body.appendChild( container );
+
+			camera = new THREE.PerspectiveCamera( 55, window.innerWidth / window.innerHeight, 2, 8000 );
+			camera.position.z = 5000;
+
+			scene = new THREE.Scene();
+			//scene.fog = new THREE.FogExp2( 0x000000, 0.0003 );
+
+			for (var x = 0; x < nX; x++) {
+				for (var y = 0; y < nY; y++) {
+					for (var z = 0; z < nZ; z++) {
+						var geometry = new THREE.SphereGeometry( 20, 4, 4 );
+						var material = new THREE.MeshBasicMaterial( 
+							{color: new THREE.Color( 0xffff00 )}
+							);
+						var sphere = new THREE.Mesh( geometry, material );
+						sphere.position.x = (x - nX/2) * sX;
+						sphere.position.y = (y - nY/2) * sY;
+						sphere.position.z = (z - nZ/2) * sZ;
+						scene.add( sphere );
+						lightBulbs[x][y][z] = {material: material};
+					}
+				}
+			}
+
+			//
+
+			renderer = new THREE.WebGLRenderer();
+			renderer.setPixelRatio( window.devicePixelRatio );
+			renderer.setSize( window.innerWidth, window.innerHeight );
+			container.appendChild( renderer.domElement );
+
+			//
+
+			stats = new Stats();
+			stats.domElement.style.position = 'absolute';
+			stats.domElement.style.top = '0px';
+			container.appendChild( stats.domElement );
+
+			//
+
+			document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+			document.addEventListener( 'touchstart', onDocumentTouchStart, false );
+			document.addEventListener( 'touchmove', onDocumentTouchMove, false );
+
+			//
+
+			window.addEventListener( 'resize', onWindowResize, false );
+
+		}
+
+		function onWindowResize() {
+
+			windowHalfX = window.innerWidth / 2;
+			windowHalfY = window.innerHeight / 2;
+
+			camera.aspect = window.innerWidth / window.innerHeight;
+			camera.updateProjectionMatrix();
+
+			renderer.setSize( window.innerWidth, window.innerHeight );
+
+		}
+
+		function onDocumentMouseMove( event ) {
+
+			mouseX = event.clientX - windowHalfX;
+			mouseY = event.clientY - windowHalfY;
+
+		}
+
+		function onDocumentTouchStart( event ) {
+
+			if ( event.touches.length == 1 ) {
+
+				event.preventDefault();
+
+				mouseX = event.touches[ 0 ].pageX - windowHalfX;
+				mouseY = event.touches[ 0 ].pageY - windowHalfY;
+
+			}
+		}
+
+		function onDocumentTouchMove( event ) {
+
+			if ( event.touches.length == 1 ) {
+
+				event.preventDefault();
+
+				mouseX = event.touches[ 0 ].pageX - windowHalfX;
+				mouseY = event.touches[ 0 ].pageY - windowHalfY;
+
+			}
+
+		}
+
+		//
+
+		function animate() {
+
+			requestAnimationFrame( animate );
+
+			render();
+			stats.update();
+
+		}
+
+		function render() {
+
+			var time = Date.now() * 0.00005;
+
+			camera.position.x += (   5 * mouseX - camera.position.x ) * 0.05;
+			camera.position.y += ( - 5 * mouseY - camera.position.y ) * 0.05;
+
+			camera.lookAt( scene.position );
+
+			var nN = nX + nY + nZ;
+			var n = 0;
+			for (var x = 0; x < nX; x++) {
+				for (var y = 0; y < nY; y++) {
+					for (var z = 0; z < nZ; z++) {
+						h = ( 360 * ( 1.0 + time + (n/nN) ) % 360 ) / 360;
+						lightBulbs[x][y][z].material.color.setHSL( h, 1.0, 0.6 );
+						n += 0.05;
+					}
+				}
+			}
+			renderer.render( scene, camera );
+
+		}
+
+		function createArray(length) {
+			var arr = new Array(length || 0),
+			i = length;
+
+			if (arguments.length > 1) {
+				var args = Array.prototype.slice.call(arguments, 1);
+				while(i--) arr[length-1 - i] = createArray.apply(this, args);
+			}
+
+			return arr;
+		}
+
+	</script>
+</div>
+
+
+</body>
+</html>
