@@ -54,7 +54,9 @@
 
 		var nX = 24, nY = 21, nZ = 12;
 		var sX = 375, sY = 190, sZ = 375;
-		var lightBulbs = createArray(nX, nY, nZ);
+		var lightBulbColors = createArray(nX, nY, nZ);
+
+		var geometry;
 
 		init();
 		animate();
@@ -70,22 +72,42 @@
 			scene = new THREE.Scene();
 			//scene.fog = new THREE.FogExp2( 0x000000, 0.0003 );
 
+			geometry = new THREE.Geometry();
+			var sprite = THREE.ImageUtils.loadTexture( "textures/sprites/disc.png" );
+
+			var colors = new Array(nX * nY * nZ);
+			var i = 0;
+
 			for (var x = 0; x < nX; x++) {
 				for (var y = 0; y < nY; y++) {
 					for (var z = 0; z < nZ; z++) {
-						var geometry = new THREE.SphereGeometry( 20, 4, 4 );
-						var material = new THREE.MeshBasicMaterial( 
-							{color: new THREE.Color( 0xffff00 )}
-							);
-						var sphere = new THREE.Mesh( geometry, material );
-						sphere.position.x = (x - nX/2) * sX;
-						sphere.position.y = (y - nY/2) * sY;
-						sphere.position.z = (z - nZ/2) * sZ;
-						scene.add( sphere );
-						lightBulbs[x][y][z] = {material: material};
+						var vertex = new THREE.Vector3();
+						vertex.x = (x - nX/2) * sX;
+						vertex.y = (y - nY/2) * sY;
+						vertex.z = (z - nZ/2) * sZ;
+						geometry.vertices.push( vertex );
+
+						var color = new THREE.Color( 0xffffff );
+						lightBulbColors[x][y][z] = color;
+						colors[i] = color;
+						i++;
 					}
 				}
 			}
+
+			geometry.colors = colors;
+
+			var material = new THREE.PointsMaterial( { 
+				size: 100, 
+				map: sprite, 
+				vertexColors: THREE.VertexColors, 
+				alphaTest: 0.5, 
+				transparent: true 
+			} );
+			material.color.setHSL( 1.0, 0.2, 0.7 );
+
+			var particles = new THREE.Points( geometry, material );
+			scene.add( particles );
 
 			//
 
@@ -177,17 +199,18 @@
 
 			camera.lookAt( scene.position );
 
-			var nN = nX + nY + nZ;
-			var n = 0;
+			var nN = nX * nY * nZ;
+			var cn = 0;
 			for (var x = 0; x < nX; x++) {
 				for (var y = 0; y < nY; y++) {
 					for (var z = 0; z < nZ; z++) {
-						h = ( 360 * ( 1.0 + time + (n/nN) ) % 360 ) / 360;
-						lightBulbs[x][y][z].material.color.setHSL( h, 1.0, 0.6 );
-						n += 0.05;
+						h = ( 360 * ( 1.0 + time + (cn/nN) ) % 360 ) / 360;
+						lightBulbColors[x][y][z].setHSL( h, 1.0, 0.6 );
+						cn += 1;
 					}
 				}
 			}
+			geometry.colorsNeedUpdate = true;
 			renderer.render( scene, camera );
 
 		}
