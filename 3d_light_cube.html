@@ -54,7 +54,7 @@
 
 		var nX = 24, nY = 21, nZ = 12;
 		var sX = 375, sY = 190, sZ = 375;
-		var lightBulbColors = createArray(nX, nY, nZ);
+		var lightBulbColors = createLightBulbsArray(nX, nY, nZ);
 
 		var geometry;
 
@@ -87,9 +87,7 @@
 						vertex.z = (z - nZ/2) * sZ;
 						geometry.vertices.push( vertex );
 
-						var color = new THREE.Color( 0xffffff );
-						lightBulbColors[x][y][z] = color;
-						colors[i] = color;
+						colors[i] = lightBulbColors[x][y][z];
 						i++;
 					}
 				}
@@ -213,6 +211,20 @@
 			geometry.colorsNeedUpdate = true;
 			renderer.render( scene, camera );
 
+		}
+
+		function createLightBulbsArray() {
+			var out = createArray(nX, nY, nZ);
+			for (var x = 0; x < nX; x++) {
+				for (var y = 0; y < nY; y++) {
+					for (var z = 0; z < nZ; z++) {
+						var color = new THREE.Color( 0x000000 );
+						out[x][y][z] = color;
+					}
+				}
+			}
+
+			return out;
 		}
 
 		function createArray(length) {
