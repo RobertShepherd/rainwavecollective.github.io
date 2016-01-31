@@ -243,12 +243,16 @@
 		function createParticle() {
 			particles.push({
 				startAt: Date.now(),
-				speed: 1,
-
+				speed: 0.1,
+				y: nY,
+				update: function() {
+					this.y -= this.speed;
+					return this.y >= 0;
+				},
 				render: function(lightBulbColors) {
 					for (var x = 0; x < nX; x++) {
 						for (var z = 0; z < nZ; z++) {
-							lightBulbColors[x][0][z].setRGB(1, 0, 0);
+							lightBulbColors[x][Math.floor(this.y)][z].setRGB(1, 0, 0);
 						}						
 					}
 				}
@@ -258,9 +262,16 @@
 		function update() {
 			var nextColors = createLightBulbsArray(nX, nY, nZ);
 
+			var survivors = [];
 			for (var i=0; i<particles.length; i++) {
-				particles[i].render(nextColors);
+				var particle = particles[i];
+				var alive = particle.update();
+				if (alive) {
+					particle.render(nextColors);
+					survivors.push(particle)
+				}
 			}
+			particles = survivors;
 
 			updateLightBulbsArray(nextColors);
 			geometry.colorsNeedUpdate = true;
