@@ -33,7 +33,7 @@
 <body>
 
 	<div id="info">
-		<a href="http://threejs.org/" target="_blank">three.js</a> - webgl particle billboards example
+		Rainwave / Squidsoup visualizer - press q to add particles
 	</div>
 
 	<script src="three.min.js"></script>
@@ -46,7 +46,7 @@
 		if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
 		var container, stats;
-		var camera, scene, renderer, particles, geometry, material, i, h, color, sprite, size;
+		var camera, scene, renderer;
 		var mouseX = 0, mouseY = 0;
 
 		var windowHalfX = window.innerWidth / 2;
@@ -57,6 +57,7 @@
 		var lightBulbColors = createLightBulbsArray(nX, nY, nZ);
 
 		var geometry;
+		var particles = [];
 
 		init();
 		animate();
@@ -131,6 +132,9 @@
 
 			window.addEventListener( 'resize', onWindowResize, false );
 
+			window.addEventListener( "keydown", onKeyDown, true);
+
+
 		}
 
 		function onWindowResize() {
@@ -183,6 +187,7 @@
 
 			requestAnimationFrame( animate );
 
+			update();
 			render();
 			stats.update();
 
@@ -197,20 +202,16 @@
 
 			camera.lookAt( scene.position );
 
-			var nN = nX * nY * nZ;
-			var cn = 0;
-			for (var x = 0; x < nX; x++) {
-				for (var y = 0; y < nY; y++) {
-					for (var z = 0; z < nZ; z++) {
-						h = ( 360 * ( 1.0 + time + (cn/nN) ) % 360 ) / 360;
-						lightBulbColors[x][y][z].setHSL( h, 1.0, 0.6 );
-						cn += 1;
-					}
-				}
-			}
-			geometry.colorsNeedUpdate = true;
 			renderer.render( scene, camera );
 
+		}
+
+		function onKeyDown ( e ) {
+			console.log ("The Unicode key code is: " + e.keyCode);
+
+			if ( e.keyCode == 81 ) { // q
+				createParticle();
+			}
 		}
 
 		function createLightBulbsArray() {
@@ -218,7 +219,7 @@
 			for (var x = 0; x < nX; x++) {
 				for (var y = 0; y < nY; y++) {
 					for (var z = 0; z < nZ; z++) {
-						var color = new THREE.Color( 0x000000 );
+						var color = new THREE.Color( 0x0000ff );
 						out[x][y][z] = color;
 					}
 				}
@@ -239,6 +240,42 @@
 			return arr;
 		}
 
+		function createParticle() {
+			particles.push({
+				startAt: Date.now(),
+				speed: 1,
+
+				render: function(lightBulbColors) {
+					for (var x = 0; x < nX; x++) {
+						for (var z = 0; z < nZ; z++) {
+							lightBulbColors[x][0][z].setRGB(1, 0, 0);
+						}						
+					}
+				}
+			});
+		}
+
+		function update() {
+			var nextColors = createLightBulbsArray(nX, nY, nZ);
+
+			for (var i=0; i<particles.length; i++) {
+				particles[i].render(nextColors);
+			}
+
+			updateLightBulbsArray(nextColors);
+			geometry.colorsNeedUpdate = true;
+			
+		}
+
+		function updateLightBulbsArray(source) {
+			for (var x = 0; x < nX; x++) {
+				for (var y = 0; y < nY; y++) {
+					for (var z = 0; z < nZ; z++) {
+						lightBulbColors[x][y][z].set(source[x][y][z]);
+					}
+				}
+			}
+		}
 	</script>
 </div>
 
