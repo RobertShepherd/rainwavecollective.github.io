@@ -210,7 +210,7 @@
 			console.log ("The Unicode key code is: " + e.keyCode);
 
 			if ( e.keyCode == 81 ) { // q
-				createParticle();
+				addRainBlockParticle(12, 6, 2, 2);
 			}
 		}
 
@@ -240,23 +240,41 @@
 			return arr;
 		}
 
-		function createParticle() {
+		function addRainBlockParticle(x, z, halfXSpan, halfZSpan) {
 			particles.push({
-				startAt: Date.now(),
-				speed: 0.1,
+				x: x - halfXSpan,
 				y: nY,
+				z: z - halfZSpan,
+				xSpan: 2 * halfXSpan,
+				ySpan: 3,
+				zSpan: 2 * halfZSpan,
+
+				speed: 0.2,
 				update: function() {
 					this.y -= this.speed;
-					return this.y >= 0;
+					return this.y >= -this.ySpan;
 				},
 				render: function(lightBulbColors) {
-					for (var x = 0; x < nX; x++) {
-						for (var z = 0; z < nZ; z++) {
-							lightBulbColors[x][Math.floor(this.y)][z].setRGB(1, 0, 0);
-						}						
+					for (var x = this.x; x < this.x + this.xSpan; x++) {
+						for (var y = Math.floor(this.y); y < this.y + this.ySpan; y++) {
+							for (var z = this.z; z < this.z + this.zSpan; z++) {
+								setBulbRGB(lightBulbColors, x, y, z, 1, 0, 0);
+							}						
+						}
 					}
 				}
 			});
+		}
+
+		function setBulbRGB(array, x, y, z, r, g, b) {
+			if (x < 0 || x >= nX)
+				return;
+			if (y < 0 || y >= nY)
+				return;
+			if (z < 0 || z >= nZ)
+				return;
+			
+			array[x][y][z].setRGB(r, g, b);
 		}
 
 		function update() {
