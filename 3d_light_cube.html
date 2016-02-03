@@ -209,8 +209,22 @@
 		function onKeyDown ( e ) {
 			console.log ("The Unicode key code is: " + e.keyCode);
 
-			if ( e.keyCode == 81 ) { // q
-				addRainBlockParticle(12, 6, 2, 2);
+			var midiNote = keyCodeToMidiNote(e.keyCode);
+			addRainBlockParticle(midiNote - 60, 6, 2, 2);
+		}
+
+		function keyCodeToMidiNote(k) {
+			switch(k) {
+				case 81: return 60; // q
+				case 87: return 62; // w
+				case 69: return 64; // e
+				case 82: return 65; // r
+				case 84: return 67; // t
+				case 89: return 69; // y
+				case 85: return 71; // u
+				case 73: return 72; // i
+				case 79: return 74; // o
+				case 80: return 76; // p
 			}
 		}
 
